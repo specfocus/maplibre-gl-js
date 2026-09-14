@@ -1134,12 +1134,12 @@ export type TileJSON = {
  * In other words, the upper bound supported for tile zoom.
  */
 /**
- * specfocus fork: 36, not 25. Upstream stops at 25 because tile keys were packed into one
+ * specfocus fork: 40, not 25 (Lucas, 2026-09-14: a place is baked to z31, the camera to z36, and the
+ * rest is digital zoom; 2^40 tile coordinates still sit far below a double's 2^53). Upstream stops at 25 because tile keys were packed into one
  * double and x/y went through 32-bit shifts; both are gone below (string keys, 2 ** z), so
  * the only limit left is what a picture pyramid needs — a place is baked to z31 and the
- * camera is allowed to z36.
  */
-export const MAX_TILE_ZOOM = 36;
+export const MAX_TILE_ZOOM = 40;
 
 /**
  * The minimum world tile zoom (Z).

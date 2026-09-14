@@ -86,8 +86,8 @@ describe('OverscaledTileID', () => {
         expect(deep.key).not.toBe(beside.key);
         expect(deep.canonical.isChildOf(new CanonicalTileID(25, 2 ** 25 - 1, 2 ** 25 - 1))).toBe(true);
         expect(deep.scaledTo(25).canonical.x).toBe(2 ** 25 - 1);
-        expect(() => new CanonicalTileID(36, 2 ** 36 - 1, 0)).not.toThrow();
-        expect(() => new CanonicalTileID(37, 0, 0)).toThrow('outside of bounds');
+        expect(() => new CanonicalTileID(40, 2 ** 40 - 1, 0)).not.toThrow();
+        expect(() => new CanonicalTileID(41, 0, 0)).toThrow('outside of bounds');
     });
 
     test('.toString', () => {

@@ -199,15 +199,16 @@ export class TerrainTileManager extends Evented {
                 mat4.ortho(mat, 0, EXTENT, EXTENT, 0, 0, 1);
             } else if (terrainTileID.canonical.isChildOf(tileID.canonical)) {
                 const dz = terrainTileID.canonical.z - tileID.canonical.z;
-                const dx = terrainTileID.canonical.x - (terrainTileID.canonical.x >> dz << dz);
-                const dy = terrainTileID.canonical.y - (terrainTileID.canonical.y >> dz << dz);
-                const size = EXTENT >> dz;
+                // specfocus: no 32-bit shifts
+                const dx = terrainTileID.canonical.x - Math.floor(terrainTileID.canonical.x / (2 ** dz)) * (2 ** dz);
+                const dy = terrainTileID.canonical.y - Math.floor(terrainTileID.canonical.y / (2 ** dz)) * (2 ** dz);
+                const size = EXTENT / (2 ** dz);
                 mat4.ortho(mat, 0, size, size, 0, 0, 1); // Note: we are using `size` instead of `EXTENT` here
                 mat4.translate(mat, mat, [-dx * size, -dy * size, 0]);
             } else if (tileID.canonical.isChildOf(terrainTileID.canonical)) {
                 const dz = tileID.canonical.z - terrainTileID.canonical.z;
-                const dx = tileID.canonical.x - (tileID.canonical.x >> dz << dz);
-                const dy = tileID.canonical.y - (tileID.canonical.y >> dz << dz);
+                const dx = tileID.canonical.x - Math.floor(tileID.canonical.x / (2 ** dz)) * (2 ** dz);
+                const dy = tileID.canonical.y - Math.floor(tileID.canonical.y / (2 ** dz)) * (2 ** dz);
                 const size = EXTENT >> dz;
                 mat4.ortho(mat, 0, EXTENT, EXTENT, 0, 0, 1);
                 mat4.translate(mat, mat, [dx * size, dy * size, 0]);

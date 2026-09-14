@@ -50,7 +50,9 @@ export class CanonicalTileID implements ICanonicalTileID {
 
     isChildOf(parent: ICanonicalTileID): boolean {
         const dz = this.z - parent.z;
-        return  dz > 0 && parent.x === (this.x >> dz) && parent.y === (this.y >> dz);
+        // specfocus: no 32-bit shift; x and y pass 2^31 past z31.
+        const scale = 2 ** dz;
+        return  dz > 0 && parent.x === Math.floor(this.x / scale) && parent.y === Math.floor(this.y / scale);
     }
 
     getTilePoint(coord: IMercatorCoordinate): Point {
@@ -251,7 +253,7 @@ export class OverscaledTileID {
         const newY = y - tileOffsetY * extent;
 
         const z = this.canonical.z;
-        const dim = 1 << z;
+        const dim = 2 ** z; // specfocus: 1 << z is wrong from z31
         const newCanonicalY = this.canonical.y + tileOffsetY;
 
         if (newCanonicalY < 0 || newCanonicalY >= dim) return null;
@@ -275,10 +277,11 @@ export class OverscaledTileID {
 }
 
 export function calculateTileKey(wrap: number, overscaledZ: number, z: number, x: number, y: number): string {
+    // specfocus: upstream packed dim*dim*wrap + dim*y + x into one double, which loses
+    // bits from z27 (2^54). The pieces are joined instead: equality is all a key is for.
     wrap *= 2;
     if (wrap < 0) wrap = wrap * -1 - 1;
-    const dim = 1 << z;
-    return (dim * dim * wrap + dim * y + x).toString(36) + z.toString(36) + overscaledZ.toString(36);
+    return wrap.toString(36) + '.' + x.toString(36) + '.' + y.toString(36) + '.' + z.toString(36) + '.' + overscaledZ.toString(36);
 }
 
 /** WGS84 spherical radius used by EPSG:3857, distinct from the mean earth radius MercatorCoordinate is built on. */

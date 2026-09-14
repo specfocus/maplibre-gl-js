@@ -348,9 +348,10 @@ export class Terrain {
         if (cachedMatrix) return cachedMatrix;
 
         const dz = tileID.canonical.z - sourceTile.tileID.canonical.z;
-        const dx = tileID.canonical.x - (tileID.canonical.x >> dz << dz);
-        const dy = tileID.canonical.y - (tileID.canonical.y >> dz << dz);
-        const demMatrix = mat4.fromScaling(new Float64Array(16), [1 / (EXTENT << dz), 1 / (EXTENT << dz), 0]);
+        // specfocus: no 32-bit shifts
+        const dx = tileID.canonical.x - Math.floor(tileID.canonical.x / (2 ** dz)) * (2 ** dz);
+        const dy = tileID.canonical.y - Math.floor(tileID.canonical.y / (2 ** dz)) * (2 ** dz);
+        const demMatrix = mat4.fromScaling(new Float64Array(16), [1 / (EXTENT * (2 ** dz)), 1 / (EXTENT * (2 ** dz)), 0]);
         mat4.translate(demMatrix, demMatrix, [dx * EXTENT, dy * EXTENT, 0]);
         this._demMatrixCache.set(matrixKey, demMatrix);
         return demMatrix;
@@ -515,7 +516,7 @@ export class Terrain {
 
     _getOverscaledTileIDFromLngLatZoom(lnglat: LngLat, zoom: number): { tileID: OverscaledTileID; mercatorX: number; mercatorY: number} {
         const mercatorCoordinate = MercatorCoordinate.fromLngLat(lnglat.wrap());
-        const worldSize = (1 << zoom) * EXTENT;
+        const worldSize = (2 ** zoom) * EXTENT; // specfocus: no 32-bit shift
         const mercatorX = mercatorCoordinate.x * worldSize;
         const mercatorY = mercatorCoordinate.y * worldSize;
         const tileX = Math.floor(mercatorX / EXTENT), tileY = Math.floor(mercatorY / EXTENT);
@@ -578,7 +579,7 @@ export function sampleAt(index: TerrainCoverageIndex, exaggeration: number, merc
     const wrappedX = mercatorX - wrap;
 
     for (const z of index.zooms) {
-        const scale = 1 << z;
+        const scale = 2 ** z; // specfocus: no 32-bit shift
         const scaledX = wrappedX * scale;
         const scaledY = mercatorY * scale;
         const tileX = Math.floor(scaledX);

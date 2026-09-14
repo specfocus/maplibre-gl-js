@@ -20,10 +20,11 @@ describe('CanonicalTileID', () => {
     });
 
     test('.key', () => {
-        expect(new CanonicalTileID(0, 0, 0).key).toBe('000');
-        expect(new CanonicalTileID(1, 0, 0).key).toBe('011');
-        expect(new CanonicalTileID(1, 1, 0).key).toBe('111');
-        expect(new CanonicalTileID(1, 1, 1).key).toBe('311');
+        // specfocus: keys join their pieces (wrap.x.y.z.overscaledZ in base 36) instead of packing them
+        expect(new CanonicalTileID(0, 0, 0).key).toBe('0.0.0.0.0');
+        expect(new CanonicalTileID(1, 0, 0).key).toBe('0.0.0.1.1');
+        expect(new CanonicalTileID(1, 1, 0).key).toBe('0.1.0.1.1');
+        expect(new CanonicalTileID(1, 1, 1).key).toBe('0.1.1.1.1');
     });
 
     test('.equals', () => {
@@ -71,11 +72,22 @@ describe('OverscaledTileID', () => {
     });
 
     test('.key', () => {
-        expect(new OverscaledTileID(0, 0, 0, 0, 0).key).toBe('000');
-        expect(new OverscaledTileID(1, 0, 1, 0, 0).key).toBe('011');
-        expect(new OverscaledTileID(1, 0, 1, 1, 0).key).toBe('111');
-        expect(new OverscaledTileID(1, 0, 1, 1, 1).key).toBe('311');
-        expect(new OverscaledTileID(1, -1, 1, 1, 1).key).toBe('711');
+        expect(new OverscaledTileID(0, 0, 0, 0, 0).key).toBe('0.0.0.0.0');
+        expect(new OverscaledTileID(1, 0, 1, 0, 0).key).toBe('0.0.0.1.1');
+        expect(new OverscaledTileID(1, 0, 1, 1, 0).key).toBe('0.1.0.1.1');
+        expect(new OverscaledTileID(1, 0, 1, 1, 1).key).toBe('0.1.1.1.1');
+        expect(new OverscaledTileID(1, -1, 1, 1, 1).key).toBe('1.1.1.1.1');
+    });
+
+    // specfocus: the picture map bakes a place to z31 and lets the camera reach z36.
+    test('deep zoom: ids, keys and parents past z25', () => {
+        const deep = new OverscaledTileID(31, 0, 31, 2 ** 31 - 1, 2 ** 31 - 2);
+        const beside = new OverscaledTileID(31, 0, 31, 2 ** 31 - 2, 2 ** 31 - 1);
+        expect(deep.key).not.toBe(beside.key);
+        expect(deep.canonical.isChildOf(new CanonicalTileID(25, 2 ** 25 - 1, 2 ** 25 - 1))).toBe(true);
+        expect(deep.scaledTo(25).canonical.x).toBe(2 ** 25 - 1);
+        expect(() => new CanonicalTileID(36, 2 ** 36 - 1, 0)).not.toThrow();
+        expect(() => new CanonicalTileID(37, 0, 0)).toThrow('outside of bounds');
     });
 
     test('.toString', () => {

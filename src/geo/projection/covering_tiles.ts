@@ -362,8 +362,9 @@ export function coveringTiles(transform: IReadonlyTransform, options: CoveringTi
                 continue;
             }
             const dz = nominalZ - it.zoom;
-            const dx = cameraPoint[0] - 0.5 - (x << dz);
-            const dy = cameraPoint[1] - 0.5 - (y << dz);
+            // specfocus: no 32-bit shift; a tile x past 2^31 (z31+) would wrap.
+            const dx = cameraPoint[0] - 0.5 - x * (2 ** dz);
+            const dy = cameraPoint[1] - 0.5 - y * (2 ** dz);
             const overscaledZ = options.reparseOverscaled ? Math.max(it.zoom, thisTileDesiredZ) : it.zoom;
             result.push({
                 tileID: new OverscaledTileID(it.zoom === maxZoom ? overscaledZ : it.zoom, it.wrap, it.zoom, x, y),

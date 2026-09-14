@@ -1133,7 +1133,13 @@ export type TileJSON = {
  * The maximum world tile zoom (Z).
  * In other words, the upper bound supported for tile zoom.
  */
-export const MAX_TILE_ZOOM = 25;
+/**
+ * specfocus fork: 36, not 25. Upstream stops at 25 because tile keys were packed into one
+ * double and x/y went through 32-bit shifts; both are gone below (string keys, 2 ** z), so
+ * the only limit left is what a picture pyramid needs — a place is baked to z31 and the
+ * camera is allowed to z36.
+ */
+export const MAX_TILE_ZOOM = 36;
 
 /**
  * The minimum world tile zoom (Z).

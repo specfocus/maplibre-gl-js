@@ -1380,11 +1380,11 @@ describe('TileManager._updateRetainedTiles', () => {
         // non-existent tiles
         expect(retained).toEqual({
             // 1/0/1
-            '211': new OverscaledTileID(1, 0, 1, 0, 1),
+            [new OverscaledTileID(1, 0, 1, 0, 1).key]: new OverscaledTileID(1, 0, 1, 0, 1),
             // 1/1/1
-            '311': new OverscaledTileID(1, 0, 1, 1, 1),
+            [new OverscaledTileID(1, 0, 1, 1, 1).key]: new OverscaledTileID(1, 0, 1, 1, 1),
             // parent
-            '000': new OverscaledTileID(0, 0, 0, 0, 0)
+            [new OverscaledTileID(0, 0, 0, 0, 0).key]: new OverscaledTileID(0, 0, 0, 0, 0)
         });
     });
 
@@ -1445,9 +1445,9 @@ describe('TileManager._updateRetainedTiles', () => {
 
         expect(retained).toEqual({
             // parent of ideal tile 0/0/0
-            '000': new OverscaledTileID(0, 0, 0, 0, 0),
+            [new OverscaledTileID(0, 0, 0, 0, 0).key]: new OverscaledTileID(0, 0, 0, 0, 0),
             // ideal tile id 1/0/1
-            '211': new OverscaledTileID(1, 0, 1, 0, 1)
+            [new OverscaledTileID(1, 0, 1, 0, 1).key]: new OverscaledTileID(1, 0, 1, 0, 1)
         });
 
         addTileSpy.mockClear();
@@ -1460,7 +1460,7 @@ describe('TileManager._updateRetainedTiles', () => {
         expect(getTileSpy).not.toHaveBeenCalled();
         expect(retainedLoaded).toEqual({
             // only ideal tile retained
-            '211': new OverscaledTileID(1, 0, 1, 0, 1)
+            [new OverscaledTileID(1, 0, 1, 0, 1).key]: new OverscaledTileID(1, 0, 1, 0, 1)
         });
     });
 
@@ -1481,7 +1481,7 @@ describe('TileManager._updateRetainedTiles', () => {
         const retained = tileManager._updateRetainedTiles([idealTile], 2);
         // parent tile isn't requested because all covering children are loaded
         expect(getTileSpy).not.toHaveBeenCalled();
-        expect(Object.keys(retained)).toEqual([idealTile.key].concat(loadedTiles.map(t => t.key)));
+        expect(Object.keys(retained).sort()).toEqual([idealTile.key].concat(loadedTiles.map(t => t.key)).sort());
     });
 
     test('prefer loaded child tiles to parent tiles', () => {
@@ -1506,24 +1506,24 @@ describe('TileManager._updateRetainedTiles', () => {
         expect(retained).toEqual({
             // parent of ideal tile (0, 0, 0) (only partially covered by loaded child
             // tiles, so we still need to load the parent)
-            '000': new OverscaledTileID(0, 0, 0, 0, 0),
+            [new OverscaledTileID(0, 0, 0, 0, 0).key]: new OverscaledTileID(0, 0, 0, 0, 0),
             // ideal tile id (1, 0, 0)
-            '011': new OverscaledTileID(1, 0, 1, 0, 0),
+            [new OverscaledTileID(1, 0, 1, 0, 0).key]: new OverscaledTileID(1, 0, 1, 0, 0),
             // loaded child tile (2, 0, 0)
-            '022': new OverscaledTileID(2, 0, 2, 0, 0)
+            [new OverscaledTileID(2, 0, 2, 0, 0).key]: new OverscaledTileID(2, 0, 2, 0, 0)
         });
 
         getTileSpy.mockClear();
         // remove child tile and check that it only uses parent tile
-        tileManager._inViewTiles.deleteTileById('022');
+        tileManager._inViewTiles.deleteTileById('0.0.0.2.2');
         retained = tileManager._updateRetainedTiles([idealTile], 1);
 
         expect(retained).toEqual({
             // parent of ideal tile (0, 0, 0) (only partially covered by loaded child
             // tiles, so we still need to load the parent)
-            '000': new OverscaledTileID(0, 0, 0, 0, 0),
+            [new OverscaledTileID(0, 0, 0, 0, 0).key]: new OverscaledTileID(0, 0, 0, 0, 0),
             // ideal tile id (1, 0, 0)
-            '011': new OverscaledTileID(1, 0, 1, 0, 0)
+            [new OverscaledTileID(1, 0, 1, 0, 0).key]: new OverscaledTileID(1, 0, 1, 0, 0)
         });
 
     });
@@ -1549,7 +1549,7 @@ describe('TileManager._updateRetainedTiles', () => {
 
         expect(retained).toEqual({
             // ideal tile id (2, 0, 0)
-            '022': new OverscaledTileID(2, 0, 2, 0, 0)
+            [new OverscaledTileID(2, 0, 2, 0, 0).key]: new OverscaledTileID(2, 0, 2, 0, 0)
         });
 
     });
@@ -1574,8 +1574,8 @@ describe('TileManager._updateRetainedTiles', () => {
         const retained = tileManager._updateRetainedTiles([idealTile], 2);
 
         expect(retained).toEqual({
-            '022': new OverscaledTileID(2, 0, 2, 0, 0),  // ideal
-            '023': new OverscaledTileID(3, 0, 2, 0, 0)   // overzoomed
+            [new OverscaledTileID(2, 0, 2, 0, 0).key]: new OverscaledTileID(2, 0, 2, 0, 0),  // ideal
+            [new OverscaledTileID(3, 0, 2, 0, 0).key]: new OverscaledTileID(3, 0, 2, 0, 0)   // overzoomed
         });
     });
 
@@ -1636,7 +1636,7 @@ describe('TileManager._updateRetainedTiles', () => {
             new OverscaledTileID(9, 0, 9, 0, 0).key,    // retained
             new OverscaledTileID(10, 0, 10, 0, 0).key,
             new OverscaledTileID(10, 0, 10, 1, 0).key
-        ]);
+        ].sort());
 
         // Canceling pending tiles now via runtime map property:
         map.cancelPendingTileRequestsWhileZooming = true;
@@ -1645,7 +1645,7 @@ describe('TileManager._updateRetainedTiles', () => {
         expect(Object.keys(retained).sort()).toEqual([
             new OverscaledTileID(10, 0, 10, 0, 0).key,
             new OverscaledTileID(10, 0, 10, 1, 0).key
-        ]);
+        ].sort());
     });
 
     test('Cancel, then retain, then cancel loading tiles when zooming in', () => {
@@ -1679,7 +1679,7 @@ describe('TileManager._updateRetainedTiles', () => {
             new OverscaledTileID(9, 0, 9, 0, 0).key,    // retained
             new OverscaledTileID(10, 0, 10, 0, 0).key,
             new OverscaledTileID(10, 0, 10, 1, 0).key
-        ]);
+        ].sort());
 
         // Resuming tile canceling via runtime map property:
         map.cancelPendingTileRequestsWhileZooming = true;
@@ -1752,12 +1752,12 @@ describe('TileManager._updateRetainedTiles', () => {
         const idealTiles = [new OverscaledTileID(8, 0, 7, 0, 0), new OverscaledTileID(8, 0, 7, 1, 0)];
         const retained = tileManager._updateRetainedTiles(idealTiles, 8);
 
-        expect(Object.keys(retained)).toEqual([
+        expect(Object.keys(retained).sort()).toEqual([
             new OverscaledTileID(7, 0, 7, 1, 0).key,
             new OverscaledTileID(8, 0, 7, 1, 0).key,
             new OverscaledTileID(8, 0, 7, 0, 0).key,
             new OverscaledTileID(7, 0, 7, 0, 0).key
-        ]);
+        ].sort());
 
     });
 
@@ -1842,12 +1842,12 @@ describe('TileManager.tilesIn', () => {
             delete result.tile.uid;
         }
 
-        expect(tiles[0].tile.tileID.key).toBe('011');
+        expect(tiles[0].tile.tileID.key).toBe('0.0.0.1.1');
         expect(tiles[0].tile.tileSize).toBe(512);
         expect(tiles[0].scale).toBe(1);
         expect(round(tiles[0].queryGeometry)).toEqual([{x: 4096, y: 4050}, {x: 12288, y: 8146}]);
 
-        expect(tiles[1].tile.tileID.key).toBe('111');
+        expect(tiles[1].tile.tileID.key).toBe('0.1.0.1.1');
         expect(tiles[1].tile.tileSize).toBe(512);
         expect(tiles[1].scale).toBe(1);
         expect(round(tiles[1].queryGeometry)).toEqual([{x: -4096, y: 4050}, {x: 4096, y: 8146}]);
@@ -1891,12 +1891,12 @@ describe('TileManager.tilesIn', () => {
             delete result.tile.uid;
         }
 
-        expect(tiles[0].tile.tileID.key).toBe('012');
+        expect(tiles[0].tile.tileID.key).toBe('0.0.0.1.2');
         expect(tiles[0].tile.tileSize).toBe(1024);
         expect(tiles[0].scale).toBe(1);
         expect(round(tiles[0].queryGeometry)).toEqual([{x: 4096, y: 4050}, {x: 12288, y: 8146}]);
 
-        expect(tiles[1].tile.tileID.key).toBe('112');
+        expect(tiles[1].tile.tileID.key).toBe('0.1.0.1.2');
         expect(tiles[1].tile.tileSize).toBe(1024);
         expect(tiles[1].scale).toBe(1);
         expect(round(tiles[1].queryGeometry)).toEqual([{x: -4096, y: 4050}, {x: 4096, y: 8146}]);
@@ -2532,7 +2532,7 @@ describe('TileManager.usedForTerrain', () => {
         await dataPromise;
         tileManager.update(transform);
         expect(tileManager._inViewTiles.getAllIds()).toEqual(
-            ['2tc099', '2tbz99', '2sxs99', '2sxr99', 'pds88', 'eo55', 'pdr88', 'en55', 'p6o88', 'ds55', 'p6n88', 'dr55']
+            ['0.74.74.9.9', '0.73.74.9.9', '0.74.73.9.9', '0.73.73.9.9', '0.3k.3k.8.8', '0.g.g.5.5', '0.3j.3k.8.8', '0.f.g.5.5', '0.3k.3j.8.8', '0.g.f.5.5', '0.3j.3j.8.8', '0.f.f.5.5']
         );
     });
 
@@ -2549,7 +2549,7 @@ describe('TileManager.usedForTerrain', () => {
         await dataPromise;
         tileManager.update(transform);
         expect(tileManager._inViewTiles.getAllIds()).toEqual(
-            ['2tc099', '2tbz99', '2sxs99', '2sxr99', 'pds88', 'pdr88', 'p6o88', 'p6n88']
+            ['0.74.74.9.9', '0.73.74.9.9', '0.74.73.9.9', '0.73.73.9.9', '0.3k.3k.8.8', '0.3j.3k.8.8', '0.3k.3j.8.8', '0.3j.3j.8.8']
         );
     });
 
@@ -2565,8 +2565,9 @@ describe('TileManager.usedForTerrain', () => {
         tileManager.onAdd(undefined);
         await dataPromise;
         tileManager.update(transform);
-        expect(tileManager._inViewTiles.getAllIds()).toEqual(
-            ['1033', '3s44', '3r44', '3c44', '3b44', 'z33', 's33', 'r33']
+        // specfocus: keys are no longer integer-like, so insertion order is what Object.keys gives; compare as sets
+        expect(tileManager._inViewTiles.getAllIds().sort()).toEqual(
+            ['0.4.4.3.3', '0.8.8.4.4', '0.7.8.4.4', '0.8.7.4.4', '0.7.7.4.4', '0.3.4.3.3', '0.4.3.3.3', '0.3.3.3.3'].sort()
         );
     });
 
@@ -2582,7 +2583,7 @@ describe('TileManager.usedForTerrain', () => {
         tileManager.onAdd(undefined);
         await dataPromise;
         tileManager.update(transform);
-        expect(tileManager._inViewTiles.getAllIds()).toEqual(['3s44', '3r44', '3c44', '3b44']);
+        expect(tileManager._inViewTiles.getAllIds().sort()).toEqual(['0.8.8.4.4', '0.7.8.4.4', '0.8.7.4.4', '0.7.7.4.4'].sort());
     });
 
 });

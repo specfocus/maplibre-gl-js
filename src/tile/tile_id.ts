@@ -165,8 +165,8 @@ export class OverscaledTileID {
         if (dz < 0) return false; // parent can't be deeper canonically
 
         return (
-            parent.canonical.x === (this.canonical.x >> dz) &&
-            parent.canonical.y === (this.canonical.y >> dz)
+            parent.canonical.x === Math.floor(this.canonical.x / (2 ** dz)) && // specfocus: no 32-bit shift
+            parent.canonical.y === Math.floor(this.canonical.y / (2 ** dz))
         );
     }
 
@@ -316,8 +316,9 @@ function getEpsg3857Coords(x: number, y: number, z: number): [number, number] {
 function getQuadkey(z:number, x:number, y:number): string {
     let quadkey = '';
     for (let i = z; i > 0; i--) {
-        const mask = 1 << (i - 1);
-        quadkey += ((x & mask ? 1 : 0) + (y & mask ? 2 : 0));
+        // specfocus: no 32-bit bit test; x and y pass 2^31 past z31.
+        const bit = 2 ** (i - 1);
+        quadkey += ((Math.floor(x / bit) % 2 ? 1 : 0) + (Math.floor(y / bit) % 2 ? 2 : 0));
     }
     return quadkey;
 }

@@ -36,7 +36,7 @@ export class MercatorCoveringTilesDetailsProvider implements CoveringTilesDetail
             minElevation = minMax.minElevation ?? minElevation;
             maxElevation = minMax.maxElevation ?? maxElevation;
         }
-        const numTiles = 1 << tileID.z;
+        const numTiles = 2 ** tileID.z;
         return new Aabb([wrap + tileID.x / numTiles, tileID.y / numTiles, minElevation],
             [wrap + (tileID.x + 1) / numTiles, (tileID.y + 1) / numTiles, maxElevation]);
     }

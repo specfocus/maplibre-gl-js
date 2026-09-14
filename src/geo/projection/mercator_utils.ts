@@ -22,7 +22,7 @@ export const maxMercatorHorizonAngle = 89.25;
  * @returns Mercator coordinates of the specified point in range [0..1].
  */
 export function tileCoordinatesToMercatorCoordinates(inTileX: number, inTileY: number, canonicalTileID: {x: number; y: number; z: number}): MercatorCoordinate {
-    const scale = 1.0 / (1 << canonicalTileID.z);
+    const scale = 1.0 / (2 ** canonicalTileID.z);
     return new MercatorCoordinate(
         inTileX / EXTENT * scale + canonicalTileID.x * scale,
         inTileY / EXTENT * scale + canonicalTileID.y * scale

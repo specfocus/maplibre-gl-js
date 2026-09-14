@@ -60,7 +60,7 @@ export function projectTileCoordinatesToSphere(inTileX: number, inTileY: number,
     //     const angular = mercatorCoordinatesToAngularCoordinatesRadians(mercator.x, mercator.y);
     //     const sphere = angularCoordinatesRadiansToVector(angular[0], angular[1]);
     //     return sphere;
-    const scale = 1.0 / (1 << tileIdZ);
+    const scale = 1.0 / (2 ** tileIdZ);
     const mercatorX = inTileX / EXTENT * scale + tileIdX * scale;
     const mercatorY = inTileY / EXTENT * scale + tileIdY * scale;
     const sphericalX = mod(mercatorX * Math.PI * 2.0 + Math.PI, Math.PI * 2);

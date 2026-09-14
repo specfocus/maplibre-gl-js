@@ -376,8 +376,8 @@ export function coveringTiles(transform: IReadonlyTransform, options: CoveringTi
         }
 
         for (let i = 0; i < 4; i++) {
-            const childX = (x << 1) + (i % 2);
-            const childY = (y << 1) + (i >> 1);
+            const childX = x * 2 + (i % 2); // specfocus: no 32-bit shift (x passes 2^30 at z30)
+            const childY = y * 2 + (i >> 1);
             const childZ = it.zoom + 1;
             stack.push({zoom: childZ, x: childX, y: childY, wrap: it.wrap, fullyVisible});
         }

@@ -77,7 +77,7 @@ export class VerticalPerspectiveProjection implements Projection {
         const granularityConfig = usage === 'stencil' ? granularitySettingsGlobe.stencil : granularitySettingsGlobe.tile;
         const granularity = granularityConfig.getGranularityForZoomLevel(canonical.z);
         const north = (canonical.y === 0) && allowPoles;
-        const south = (canonical.y === (1 << canonical.z) - 1) && allowPoles;
+        const south = (canonical.y === (2 ** canonical.z) - 1) && allowPoles;
         return this._getMesh(context, {
             granularity,
             generateBorders: hasBorder,

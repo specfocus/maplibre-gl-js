@@ -687,7 +687,7 @@ export class TransformHelper implements ITransformGetters {
         if (!overscaledTileID) {
             return [0, 0, 1, 1];
         }
-        const scale = (overscaledTileID.canonical.z >= 0) ? (1 << overscaledTileID.canonical.z) : Math.pow(2.0, overscaledTileID.canonical.z);
+        const scale = (overscaledTileID.canonical.z >= 0) ? (2 ** overscaledTileID.canonical.z) : Math.pow(2.0, overscaledTileID.canonical.z);
         return [
             overscaledTileID.canonical.x / scale,
             overscaledTileID.canonical.y / scale,

@@ -59,7 +59,7 @@ export class GlobeCoveringTilesDetailsProvider implements CoveringTilesDetailsPr
      * when crossing the poles Y is mirrored and X is shifted by half world size.
      */
     distanceToTile2d(pointX: number, pointY: number, tileID: {x: number; y: number; z: number}, _bv: IBoundingVolume): number {
-        const scale = 1 << tileID.z;
+        const scale = 2 ** tileID.z;
         const tileMercatorSize = 1.0 / scale;
         const tileCornerX = tileID.x / scale; // In range 0..1
         const tileCornerY = tileID.y / scale; // In range 0..1
@@ -81,7 +81,7 @@ export class GlobeCoveringTilesDetailsProvider implements CoveringTilesDetailsPr
      * Returns the wrap value for a given tile, computed so that tiles will remain loaded when crossing the antimeridian.
      */
     getWrap(centerCoord: MercatorCoordinate, tileID: {x: number; y: number; z: number}, _parentWrap: number): number {
-        const scale = 1 << tileID.z;
+        const scale = 2 ** tileID.z;
         const tileMercatorSize = 1.0 / scale;
         const tileX = tileID.x / scale; // In range 0..1
         const distanceCurrent = distanceToTileSimple(centerCoord.x, tileX, tileMercatorSize);
@@ -170,7 +170,7 @@ export class GlobeCoveringTilesDetailsProvider implements CoveringTilesDetailsPr
             if (tileID.y === 0) {
                 extremesPoints.push([0, 1, 0]); // North pole
             }
-            if (tileID.y === (1 << tileID.z) - 1) {
+            if (tileID.y === (2 ** tileID.z) - 1) {
                 extremesPoints.push([0, -1, 0]); // South pole
             }
 
@@ -234,12 +234,12 @@ export class GlobeCoveringTilesDetailsProvider implements CoveringTilesDetailsPr
             //    -----       -----
             //         ---m---
             
-            if (tileID.y >= (1 << tileID.z) / 2) {
+            if (tileID.y >= (2 ** tileID.z) / 2) {
                 // South hemisphere - include the tile's north edge midpoint
                 extremesPoints.push(vec3.scale([], projectTileCoordinatesToSphere(EXTENT / 2, 0, tileID.x, tileID.y, tileID.z), maxElevation));
                 // No need to include minElevation variant of this point, for the same reason why we don't include minElevation center.
             }
-            if (tileID.y < (1 << tileID.z) / 2) {
+            if (tileID.y < (2 ** tileID.z) / 2) {
                 // North hemisphere - include the tile's south edge midpoint
                 extremesPoints.push(vec3.scale([], projectTileCoordinatesToSphere(EXTENT / 2, EXTENT, tileID.x, tileID.y, tileID.z), maxElevation));
                 // No need to include minElevation variant of this point, for the same reason why we don't include minElevation center.
@@ -276,7 +276,7 @@ export class GlobeCoveringTilesDetailsProvider implements CoveringTilesDetailsPr
             }
 
             // South points
-            if (tileID.y === (1 << tileID.z) - 1) {
+            if (tileID.y === (2 ** tileID.z) - 1) {
                 points.push(
                     threePlaneIntersection(planeWest, planeEast, planeUp),
                     threePlaneIntersection(planeWest, planeEast, planeDown),

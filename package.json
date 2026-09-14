@@ -1,7 +1,7 @@
 {
     "name": "@specfocus/maplibre-gl",
     "description": "specfocus fork of maplibre-gl: tile ids to z36 for the picture map (upstream stops at z25)",
-    "version": "6.9.4",
+    "version": "6.9.5",
     "module": "dist/maplibre-gl.mjs",
     "style": "dist/maplibre-gl.css",
     "license": "BSD-3-Clause",

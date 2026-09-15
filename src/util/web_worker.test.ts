@@ -16,6 +16,8 @@ describe('workerFactory', () => {
         vi.restoreAllMocks();
     });
 
+    // Unbundled (as here) there is no inline worker source, so the URL path is taken;
+    // bundled, the same call spawns the embedded worker from a Blob URL.
     test('creates a module worker when WORKER_URL is empty', async () => {
         const WorkerSpy = vi.fn();
         (globalThis as any).Worker = WorkerSpy;

@@ -58,7 +58,39 @@ function importAsBlobUrl(url: string): string {
     return URL.createObjectURL(blob);
 }
 
+/**
+ * specfocus: the worker's own source, embedded at build time (rolldown's
+ * `virtual:maplibre-gl-worker-source`, see rolldown.config.ts). Empty when the code
+ * runs unbundled (tests, `src/` consumers), in which case the URL path below applies.
+ */
+async function inlineWorkerSource(): Promise<string> {
+    try {
+        const mod = await import('virtual:maplibre-gl-worker-source');
+        return typeof mod.workerSource === 'string' ? mod.workerSource : '';
+    } catch {
+        return '';
+    }
+}
+
+/**
+ * A worker spawned from the embedded source: no URL to guess, no sibling file a bundler
+ * can rename or move, no cross-origin fetch. The source is a self-contained ES module,
+ * so the worker is a module worker; a Blob URL is same-origin by definition.
+ */
+function createInlineWorker(source: string): Worker {
+    const blobUrl = URL.createObjectURL(new Blob([source], {type: 'text/javascript'}));
+    try {
+        return new Worker(blobUrl, {type: 'module'});
+    } finally {
+        URL.revokeObjectURL(blobUrl);
+    }
+}
+
 export async function workerFactory(): Promise<Worker> {
+    if (!config.WORKER_URL) {
+        const source = await inlineWorkerSource();
+        if (source) return createInlineWorker(source);
+    }
     const url = config.WORKER_URL || defaultWorkerUrl();
     const asModule = url?.endsWith('.cjs') ? false : true;
 

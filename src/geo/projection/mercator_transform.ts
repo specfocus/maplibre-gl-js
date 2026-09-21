@@ -845,6 +845,9 @@ export class MercatorTransform implements ITransform {
         return (p[2] / p[3]);
     }
 
+    /** specfocus: see `renderTranslateMetres` in transform_interface.ts. */
+    renderTranslateMetres: [number, number] | null = null;
+
     getProjectionData(params: ProjectionDataParams): RendererProjectionData {
         const {overscaledTileID, aligned, applyTerrainMatrix} = params;
         const mercatorTileCoordinates = this._helper.getMercatorTileCoordinates(overscaledTileID);
@@ -857,6 +860,16 @@ export class MercatorTransform implements ITransform {
             mainMatrix = tilePosMatrix; // This matrix should be float32
         } else {
             mainMatrix = createIdentityMat4f32();
+        }
+        if (this.renderTranslateMetres && overscaledTileID && tilePosMatrix && mainMatrix === tilePosMatrix) {
+            // The WHOLE tile moves, geometry and clipping mask alike (both read this matrix), so
+            // neighbouring tiles still meet edge to edge: no seam, unlike `*-translate`, which
+            // moves the drawing inside a mask that stays put. Tile units per metre at the tile's
+            // own zoom; y grows south. The matrix is cached, so the shift goes on a copy.
+            const metresPerWorld = 40075016.686 * Math.cos(degreesToRadians(this.center.lat));
+            const unitsPerMetre = EXTENT * Math.pow(2, overscaledTileID.canonical.z) / metresPerWorld;
+            const [east, north] = this.renderTranslateMetres;
+            mainMatrix = mat4.translate(new Float32Array(16), mainMatrix, [east * unitsPerMetre, -north * unitsPerMetre, 0]) as unknown as Mat4f32;
         }
         return {
             mainMatrix, // Might be set to a custom matrix by different projections.

@@ -26,6 +26,7 @@ import {MercatorShaderDefine, MercatorShaderVariantKey} from '../geo/projection/
 import type {IReadonlyTransform} from '../geo/transform_interface.ts';
 import type {Style} from '../style/style.ts';
 import type {StyleLayer} from '../style/style_layer.ts';
+import {layerTranslateMetres} from '../style/layer_translate.ts';
 import type {CrossFaded} from '../style/properties.ts';
 import type {LineAtlas} from './line_atlas.ts';
 import type {ImageManager} from './image_manager.ts';
@@ -290,6 +291,16 @@ export class Painter {
     }
 
     renderTileClippingMasks(layer: StyleLayer, tileIDs: OverscaledTileID[], renderToTexture: boolean): void {
+        // specfocus: the masks of a translated layer move with it (see layerTranslateMetres).
+        this.transform.renderTranslateMetres = layerTranslateMetres(layer);
+        try {
+            this._renderTileClippingMasksUntranslated(layer, tileIDs, renderToTexture);
+        } finally {
+            this.transform.renderTranslateMetres = null;
+        }
+    }
+
+    _renderTileClippingMasksUntranslated(layer: StyleLayer, tileIDs: OverscaledTileID[], renderToTexture: boolean): void {
         if (this.currentStencilSource === layer.source || !layer.isTileClipped() || !tileIDs?.length) {
             return;
         }
@@ -683,6 +694,17 @@ export class Painter {
         if (layer.isHidden(this.transform.zoom)) return;
         if (layer.type !== 'background' && layer.type !== 'custom' && !(coords || []).length) return;
         this.id = layer.id;
+
+        // specfocus: a layer may ask to be drawn some metres away (layerTranslateMetres).
+        this.transform.renderTranslateMetres = layerTranslateMetres(layer);
+        try {
+            this._renderLayerUntranslated(painter, tileManager, layer, coords, renderOptions);
+        } finally {
+            this.transform.renderTranslateMetres = null;
+        }
+    }
+
+    _renderLayerUntranslated(painter: Painter, tileManager: TileManager, layer: StyleLayer, coords: OverscaledTileID[], renderOptions: RenderOptions): void {
 
         const draw = this.drawFunctions;
         if (isSymbolStyleLayer(layer)) {

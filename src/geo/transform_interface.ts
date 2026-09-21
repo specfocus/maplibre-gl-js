@@ -497,6 +497,13 @@ export interface IReadonlyTransform extends ITransformGetters {
     getProjectionData(params: ProjectionDataParams): RendererProjectionData;
 
     /**
+     * specfocus: metres, east and north positive, that every tile is drawn away from where its
+     * coordinates say, while the painter renders a layer that asks for it (see
+     * `LAYER_TRANSLATE_METADATA_KEY` in painter.ts). `null` outside those layers.
+     */
+    renderTranslateMetres?: [number, number] | null;
+
+    /**
      * @internal
      * Returns whether the supplied location is occluded in this projection.
      * For example during globe rendering a location on the backfacing side of the globe is occluded.

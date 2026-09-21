@@ -1,4 +1,6 @@
 import {DepthMode} from '../depth_mode.ts';
+import {StencilMode} from '../stencil_mode.ts';
+import {layerIsUnclipped} from '../../style/layer_translate.ts';
 import {CullFaceMode} from '../cull_face_mode.ts';
 import {Texture} from '../texture.ts';
 import {
@@ -192,6 +194,7 @@ function drawLineTiles(
     const gl = context.gl;
     const transform = painter.transform;
 
+    const unclipped = layerIsUnclipped(layer);
     let firstTile = true;
 
     for (const coord of coords) {
@@ -248,7 +251,8 @@ function drawLineTiles(
             uniformValues = lineUniformValues(painter, tile, layer, pixelRatio);
         }
 
-        const stencil = painter.stencilModeForClipping(coord);
+        // specfocus: an opaque line kept at its ground width outgrows the tile buffer (layer_translate.ts).
+        const stencil = unclipped ? StencilMode.disabled : painter.stencilModeForClipping(coord);
 
         program.draw(context, gl.TRIANGLES, depthMode,
             stencil, colorMode, CullFaceMode.disabled, uniformValues, terrainData, projectionData,

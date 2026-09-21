@@ -1,4 +1,6 @@
 import {mat4} from 'gl-matrix';
+import {LngLat} from '../geo/lng_lat.ts';
+import {sourceTranslateMetres} from './layer_translate.ts';
 import {throwIfAborted} from '../util/abort_error.ts';
 import {ErrorEvent, Evented} from '../util/evented.ts';
 import {MapSourceDataEvent, MapStyleDataEvent, MapStyleLoadEvent, type MapEventType} from '../ui/events.ts';
@@ -1816,8 +1818,24 @@ export class Style extends Evented<MapEventType> {
 
     _updateSources(transform: ITransform): void {
         for (const id in this.tileManagers) {
-            this.tileManagers[id].update(transform, this.map.terrain);
+            this.tileManagers[id].update(this._coverageTransform(transform, id), this.map.terrain);
         }
+    }
+
+    /**
+     * specfocus: a source whose layers are drawn some metres away (layer_translate.ts) needs the
+     * tiles under the viewport moved the OTHER way: a strip up to that wide at the screen's
+     * edge is drawn from the neighbour tile beyond it, which the plain viewport never asks for.
+     */
+    _coverageTransform(transform: ITransform, sourceId: string): ITransform {
+        const translate = sourceTranslateMetres(Object.values(this._layers), sourceId);
+        if (!translate) return transform;
+        const {lng, lat} = transform.center;
+        const metresPerDegreeLat = 40075016.686 / 360;
+        const metresPerDegreeLng = metresPerDegreeLat * Math.cos(lat * Math.PI / 180);
+        const moved = transform.clone();
+        moved.setCenter(new LngLat(lng - translate[0] / metresPerDegreeLng, lat - translate[1] / metresPerDegreeLat));
+        return moved;
     }
 
     _generateCollisionBoxes(): void {

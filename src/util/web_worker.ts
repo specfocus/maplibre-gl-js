@@ -54,7 +54,11 @@ async function fetchAsBlobUrl(url: string): Promise<string> {
 }
 
 function importAsBlobUrl(url: string): string {
-    const blob = new Blob([`import ${JSON.stringify(new URL(url, import.meta.url).href)}`], {type: 'text/javascript'});
+    // specfocus: `String(...)` around the base on purpose. A bundler that reads this file as
+    // SOURCE (Turbopack, when the fork is a workspace member and not a node_modules package)
+    // takes the exact shape `new URL(x, import.meta.url)` for an asset reference and fails the
+    // build with "Can't resolve <dynamic>", because `x` is only known at run time.
+    const blob = new Blob([`import ${JSON.stringify(new URL(url, String(import.meta.url)).href)}`], {type: 'text/javascript'});
     return URL.createObjectURL(blob);
 }
 

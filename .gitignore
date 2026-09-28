@@ -40,4 +40,4 @@ npm-debug.log
 *.iml
 /.vs/
 .*.swp
-tsconfig.lib.json
+/lib

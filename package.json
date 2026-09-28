@@ -2,7 +2,7 @@
     "name": "@specfocus/maplibre-gl",
     "description": "specfocus fork of maplibre-gl: tile ids to z36 for the picture map (upstream stops at z25)",
     "version": "6.9.9",
-    "module": "dist/maplibre-gl.mjs",
+    "module": "lib/index.js",
     "style": "dist/maplibre-gl.css",
     "license": "BSD-3-Clause",
     "publishConfig": {
@@ -18,16 +18,8 @@
         "type": "git",
         "url": "https://github.com/specfocus/maplibre-gl-js"
     },
-    "types": "dist/maplibre-gl.d.ts",
+    "types": "lib/index.d.ts",
     "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/maplibre-gl.d.ts",
-            "import": "./dist/maplibre-gl.mjs"
-        },
-        "./dist/*": "./dist/*",
-        "./package.json": "./package.json"
-    },
     "sideEffects": [
         "*.css",
         "src/**/*.ts"
@@ -167,15 +159,20 @@
         "bench": "vitest bench --run --config vitest.config.bench.ts",
         "bench-e2e": "node test/bench/e2e/run.ts",
         "prepare": "npm run codegen",
-        "typecheck": "tsgo --noEmit && tsgo --project tsconfig.dist.json"
+        "typecheck": "tsgo --noEmit && tsgo --project tsconfig.dist.json",
+        "clean-lib": "rimraf lib",
+        "build-css-lib": "postcss -o lib/maplibre-gl.css src/css/maplibre-gl.css",
+        "build": "npm run clean-lib && npm run codegen-sources && tsc -p tsconfig.lib.json && npm run build-css-lib",
+        "codegen-sources": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders"
     },
     "files": [
         "build/",
-        "dist/*",
+        "lib/",
         "src/"
     ],
     "engines": {
         "npm": ">=8.1.0",
         "node": ">=16.14.0"
-    }
+    },
+    "main": "lib/index.js"
 }

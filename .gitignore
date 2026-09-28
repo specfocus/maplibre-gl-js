@@ -1,5 +1,7 @@
 /staging/
 /types/
+/lib/
+/test/bench/lib/
 /dist/
 /dist_type/
 /docs/assets/examples/*.webp
@@ -38,3 +40,4 @@ npm-debug.log
 *.iml
 /.vs/
 .*.swp
+tsconfig.lib.json

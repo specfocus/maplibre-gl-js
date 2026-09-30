@@ -9,3 +9,7 @@ The package prepack lifecycle now runs the existing complete lib build. The file
 Verification: local full lib build passed on 2026-09-30. Package archive verification is recorded below. This source fix is not a published release; Casa Club must consume a newly published version before deployment.
 
 Archive dry-run after local builds verified lib/index.js, lib/index.d.ts, lib/maplibre-gl.css and legacy dist/maplibre-gl.css. This does not prove registry publication.
+
+The first CI publication exposed an undeclared rimraf executable masked by the workspace installation. clean-lib now uses the Node standard library, so the build has no external cleanup dependency. The failed run did not publish 6.9.11. Verify with the package own npm ci installation before retrying release.
+
+Standalone dependencies were installed from package-lock.json using npm ci --workspaces=false --ignore-scripts (the local npm nesting breaks lifecycle execution with --workspaces=false). The subsequent complete npm pack lifecycle passed and included all four required files; the CI npm ci lifecycle itself passed in the earlier run.

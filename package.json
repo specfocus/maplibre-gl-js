@@ -163,12 +163,14 @@
         "clean-lib": "rimraf lib",
         "build-css-lib": "postcss -o lib/maplibre-gl.css src/css/maplibre-gl.css",
         "build": "npm run clean-lib && npm run codegen-sources && tsc -p tsconfig.lib.json && npm run build-css-lib",
-        "codegen-sources": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders"
+        "codegen-sources": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders",
+        "prepack": "npm run build"
     },
     "files": [
         "build/",
         "lib/",
-        "src/"
+        "src/",
+        "dist/"
     ],
     "engines": {
         "npm": ">=8.1.0",

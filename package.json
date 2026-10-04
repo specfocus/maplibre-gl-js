@@ -162,7 +162,7 @@
         "typecheck": "tsgo --noEmit && tsgo --project tsconfig.dist.json",
         "clean-lib": "node -e \"require('node:fs').rmSync('lib', { recursive: true, force: true })\"",
         "build-css-lib": "postcss -o lib/maplibre-gl.css src/css/maplibre-gl.css",
-        "build": "npm run clean-lib && npm run codegen-sources && tsc -p tsconfig.lib.json && npm run build-css-lib",
+        "build": "npm run clean-lib && npm run codegen-sources && tsc -p tsconfig.lib.json && node build/inline-worker-into-lib.ts && npm run build-css-lib",
         "codegen-sources": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders",
         "prepack": "npm run build"
     },

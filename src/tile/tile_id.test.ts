@@ -63,6 +63,18 @@ describe('CanonicalTileID', () => {
 });
 
 describe('OverscaledTileID', () => {
+    test('.scaledTo past z31 stays positive (specfocus: tiles go to z40)', () => {
+        // Grecia at z32: x and y are past 2^31, where a `>>` shift turns them negative.
+        const deep = new OverscaledTileID(32, 0, 32, 2284052480, 4054220800);
+        const up = deep.scaledTo(31);
+        expect(up.canonical.x).toBe(1142026240);
+        expect(up.canonical.y).toBe(2027110400);
+        const street = deep.scaledTo(16);
+        expect(street.canonical.x).toBe(Math.floor(2284052480 / 2 ** 16));
+        expect(street.canonical.y).toBe(Math.floor(4054220800 / 2 ** 16));
+        expect(deep.calculateScaledKey(16, true)).toBe(street.key);
+    });
+
     test('constructor', () => {
         expect(new OverscaledTileID(0, 0, 0, 0, 0)).toBeInstanceOf(OverscaledTileID);
     });

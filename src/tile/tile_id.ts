@@ -129,7 +129,10 @@ export class OverscaledTileID {
         if (targetZ > this.canonical.z) {
             return new OverscaledTileID(targetZ, this.wrap, this.canonical.z, this.canonical.x, this.canonical.y);
         } else {
-            return new OverscaledTileID(targetZ, this.wrap, targetZ, this.canonical.x >> zDifference, this.canonical.y >> zDifference);
+            // specfocus: division, not `>>` -- a shift is 32-bit signed, so past z31 the coordinate
+            // wrapped negative and CanonicalTileID threw "x=-1005866218 ... z=32 outside of bounds".
+            const scale = 2 ** zDifference;
+            return new OverscaledTileID(targetZ, this.wrap, targetZ, Math.floor(this.canonical.x / scale), Math.floor(this.canonical.y / scale));
         }
     }
 
@@ -148,7 +151,8 @@ export class OverscaledTileID {
         if (targetZ > this.canonical.z) {
             return calculateTileKey(this.wrap * +withWrap, targetZ, this.canonical.z, this.canonical.x, this.canonical.y);
         } else {
-            return calculateTileKey(this.wrap * +withWrap, targetZ, targetZ, this.canonical.x >> zDifference, this.canonical.y >> zDifference);
+            const scale = 2 ** zDifference; // specfocus: not `>>`, see scaledTo
+            return calculateTileKey(this.wrap * +withWrap, targetZ, targetZ, Math.floor(this.canonical.x / scale), Math.floor(this.canonical.y / scale));
         }
     }
 

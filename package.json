@@ -45,7 +45,24 @@
         "quickselect": "^3.0.0",
         "tinyqueue": "^3.0.0"
     },
+    "peerDependencies": {
+        "@emotion/react": "^11.14.0",
+        "@mui/material": "^9.2.0",
+        "react": "^19.2.0"
+    },
+    "peerDependenciesMeta": {
+        "@emotion/react": {
+            "optional": true
+        },
+        "@mui/material": {
+            "optional": true
+        },
+        "react": {
+            "optional": true
+        }
+    },
     "devDependencies": {
+        "@emotion/react": "^11.14.0",
         "@fontsource/noto-sans-devanagari": "^5.3.0",
         "@fontsource/noto-sans-hebrew": "^5.3.0",
         "@fontsource/noto-sans-khmer": "^5.3.0",
@@ -53,6 +70,7 @@
         "@fontsource/noto-sans-thai": "^5.3.0",
         "@mapbox/mapbox-gl-rtl-text": "^0.4.0",
         "@mapbox/mvt-fixtures": "^4.0.0",
+        "@mui/material": "^9.2.0",
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/d3": "^7.4.3",
         "@types/earcut": "^3.0.0",
@@ -66,6 +84,7 @@
         "@types/offscreencanvas": "^2019.7.3",
         "@types/pixelmatch": "^5.2.6",
         "@types/pngjs": "^6.0.5",
+        "@types/react": "^19.2.0",
         "@types/request": "^2.48.13",
         "@types/shuffle-seed": "^1.1.3",
         "@types/window-or-global": "^1.0.6",
@@ -108,6 +127,7 @@
         "postcss-inline-svg": "^6.0.0",
         "pretty-bytes": "^7.1.3",
         "puppeteer": "^25.10.0",
+        "react": "^19.2.0",
         "regenerate": "^1.4.2",
         "rolldown": "^1.2.7",
         "rolldown-plugin-dts": "^0.28.5",
@@ -134,6 +154,7 @@
         "generate-typings": "cross-env BUILD=types rolldown -c rolldown.config.ts",
         "generate-docs": "typedoc && node build/generate-docs.ts",
         "generate-images": "node build/generate-doc-images.ts",
+        "generate-mui-styles": "node build/generate-mui-styles.ts",
         "build-dist": "npm run build-css && npm run generate-unicode-data && npm run generate-shaders && npm run build-dev && npm run build-prod",
         "build-dev": "cross-env BUILD=dev TARGET=worker rolldown -c rolldown.config.ts && cross-env BUILD=dev TARGET=main rolldown -c rolldown.config.ts",
         "watch-dev": "cross-env BUILD=dev TARGET=main rolldown -c rolldown.config.ts --watch",
@@ -156,7 +177,7 @@
         "test-build-ci": "vitest run --config vitest.config.build.ts --coverage",
         "test-watch-roots": "vitest --config vitest.config.unit.ts --watch",
         "test-render": "vitest test/integration/render/render.test.ts",
-        "codegen": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders && npm run generate-typings",
+        "codegen": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders generate-mui-styles && npm run generate-typings",
         "bench": "vitest bench --run --config vitest.config.bench.ts",
         "bench-e2e": "node test/bench/e2e/run.ts",
         "prepare": "npm run codegen",
@@ -164,7 +185,7 @@
         "clean-lib": "node -e \"require('node:fs').rmSync('lib', { recursive: true, force: true })\"",
         "build-css-lib": "postcss -o lib/maplibre-gl.css src/css/maplibre-gl.css",
         "build": "npm run clean-lib && npm run codegen-sources && tsc -p tsconfig.lib.json && node build/inline-worker-into-lib.ts && npm run build-css-lib",
-        "codegen-sources": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders",
+        "codegen-sources": "run-p --print-label generate-style-code generate-unicode-data generate-struct-arrays generate-shaders generate-mui-styles",
         "prepack": "npm run build"
     },
     "files": [

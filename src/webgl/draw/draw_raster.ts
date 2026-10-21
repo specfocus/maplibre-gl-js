@@ -110,12 +110,36 @@ function drawTiles(
 
     // Draw all tiles
     for (const coord of coords) {
+        const tile = tileManager.getTile(coord);
+
+        const terrainData = painter.getTerrainDataForTile(coord, isRenderingToTexture);
+        const projectionData = transform.getProjectionData({overscaledTileID: coord, aligned: align, applyGlobeMatrix: !isRenderingToTexture, applyTerrainMatrix: true});
+        const mesh = sourceMesh ?? projection.getMeshFromTileID(context, coord.canonical, useBorder, allowPoles, 'raster');
+        const stencilMode = stencilModes ? stencilModes[coord.overscaledZ] : StencilMode.disabled;
+        const cullFaceMode = flipCullfaceMode ? CullFaceMode.frontCCW : CullFaceMode.backCCW;
+        const {parentTile, parentScaleBy, parentTopLeft, fadeValues} = getFadeProperties(tile, tileManager, fadeDuration, isTerrain);
+        tile.fadeOpacity = fadeValues.tileOpacity;
+
+        // specfocus: a tile-pyramids tile whose picture has transparent parts carries its ground
+        // (tile_pyramids_source.ts). The ground is drawn first, in the same sublayer, and the
+        // picture over it with LEQUAL: one tile, two images, nothing from another layer.
+        const groundTexture = tile.groundTexture;
+        if (groundTexture) {
+            const groundDepthMode = painter.getDepthModeForSublayer(coord.overscaledZ - minTileZ,
+                rasterOpacity === 1 ? DepthMode.ReadWrite : DepthMode.ReadOnly, gl.LESS);
+            context.activeTexture.set(gl.TEXTURE0);
+            groundTexture.bind(textureFilter, gl.CLAMP_TO_EDGE, gl.LINEAR_MIPMAP_NEAREST);
+            context.activeTexture.set(gl.TEXTURE1);
+            groundTexture.bind(textureFilter, gl.CLAMP_TO_EDGE, gl.LINEAR_MIPMAP_NEAREST);
+            program.draw(context, gl.TRIANGLES, groundDepthMode, stencilMode, colorMode, cullFaceMode,
+                rasterUniformValues([0, 0], 1, {mix: 0, opacity: fadeValues.fadeMix.opacity}, layer, corners, imageWarp), terrainData, projectionData, layer.id, mesh.vertexBuffer,
+                mesh.indexBuffer, mesh.segments);
+        }
+
         // Set the lower zoom level to sublayer 0, and higher zoom levels to higher sublayers
         // Use gl.LESS to prevent double drawing in areas where tiles overlap.
         const depthMode = painter.getDepthModeForSublayer(coord.overscaledZ - minTileZ,
-            rasterOpacity === 1 ? DepthMode.ReadWrite : DepthMode.ReadOnly, gl.LESS);
-
-        const tile = tileManager.getTile(coord);
+            rasterOpacity === 1 ? DepthMode.ReadWrite : DepthMode.ReadOnly, groundTexture ? gl.LEQUAL : gl.LESS);
 
         // create and bind first texture
         context.activeTexture.set(gl.TEXTURE0);
@@ -123,8 +147,6 @@ function drawTiles(
 
         // create second texture - use either the current tile or fade tile to bind second texture below
         context.activeTexture.set(gl.TEXTURE1);
-        const {parentTile, parentScaleBy, parentTopLeft, fadeValues} = getFadeProperties(tile, tileManager, fadeDuration, isTerrain);
-        tile.fadeOpacity = fadeValues.tileOpacity;
         if (parentTile) {
             parentTile.fadeOpacity = fadeValues.parentTileOpacity;
             parentTile.texture.bind(textureFilter, gl.CLAMP_TO_EDGE, gl.LINEAR_MIPMAP_NEAREST);
@@ -139,14 +161,9 @@ function drawTiles(
                 context.extTextureFilterAnisotropicMax);
         }
 
-        const terrainData = painter.getTerrainDataForTile(coord, isRenderingToTexture);
-        const projectionData = transform.getProjectionData({overscaledTileID: coord, aligned: align, applyGlobeMatrix: !isRenderingToTexture, applyTerrainMatrix: true});
         const uniformValues = rasterUniformValues(parentTopLeft, parentScaleBy, fadeValues.fadeMix, layer, corners, imageWarp);
 
-        const mesh = sourceMesh ?? projection.getMeshFromTileID(context, coord.canonical, useBorder, allowPoles, 'raster');
-        const stencilMode = stencilModes ? stencilModes[coord.overscaledZ] : StencilMode.disabled;
-
-        program.draw(context, gl.TRIANGLES, depthMode, stencilMode, colorMode, flipCullfaceMode ? CullFaceMode.frontCCW : CullFaceMode.backCCW,
+        program.draw(context, gl.TRIANGLES, depthMode, stencilMode, colorMode, cullFaceMode,
             uniformValues, terrainData, projectionData, layer.id, mesh.vertexBuffer,
             mesh.indexBuffer, mesh.segments);
     }

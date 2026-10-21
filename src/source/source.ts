@@ -1,5 +1,6 @@
 import {VectorTileSource} from '../source/vector_tile_source.ts';
 import {RasterTileSource} from '../source/raster_tile_source.ts';
+import {TilePyramidsSource} from '../source/tile_pyramids_source.ts';
 import {RasterDEMTileSource} from '../source/raster_dem_tile_source.ts';
 import {GeoJSONSource, type GeoJSONSourceShouldReloadTileOptions} from '../source/geojson_source.ts';
 import {VideoSource} from '../source/video_source.ts';
@@ -168,6 +169,9 @@ const getSourceType = (name: string): SourceClass => {
             return ImageSource;
         case 'raster':
             return RasterTileSource;
+        case 'tile-pyramids':
+            // specfocus: per-tile source resolution (tile_pyramids_source.ts)
+            return TilePyramidsSource as unknown as SourceClass;
         case 'raster-dem':
             return RasterDEMTileSource;
         case 'vector':

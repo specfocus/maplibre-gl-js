@@ -108,6 +108,8 @@ export class Tile {
     needsColorReliefPrepare: boolean;
     abortController: AbortController;
     texture: any;
+    /** specfocus: the ground drawn under `texture` where the picture is transparent (tile_pyramids_source.ts). */
+    groundTexture?: Texture;
     fbo: Framebuffer;
     demTexture: Texture;
     refreshedUponExpiration: boolean;

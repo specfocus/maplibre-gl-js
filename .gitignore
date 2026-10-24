@@ -41,3 +41,4 @@ npm-debug.log
 /.vs/
 .*.swp
 /lib
+.turbo/turbo-build.log

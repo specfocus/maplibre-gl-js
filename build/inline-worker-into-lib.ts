@@ -31,8 +31,13 @@ fs.writeFileSync(sourceFile, `export const workerSource = ${JSON.stringify(worke
 
 const loader = fs.readFileSync(loaderFile, 'utf8');
 const needle = `import('${VIRTUAL_ID}')`;
-if (!loader.includes(needle)) {
-    throw new Error(`[inline-worker-into-lib] ${loaderFile} no longer imports ${VIRTUAL_ID}; update this script`);
+if (loader.includes(`import('./worker-source.js')`)) {
+    console.log('[inline-worker-into-lib] loader already points at ./worker-source.js');
+} else if (loader.includes(needle)) {
+    fs.writeFileSync(loaderFile, loader.split(needle).join(`import('./worker-source.js')`));
+} else {
+    throw new Error(
+        `[inline-worker-into-lib] ${loaderFile} no longer imports ${VIRTUAL_ID} or ./worker-source.js; update this script`,
+    );
 }
-fs.writeFileSync(loaderFile, loader.split(needle).join(`import('./worker-source.js')`));
 console.log(`[inline-worker-into-lib] lib/util/worker-source.js: ${workerSource.length} chars`);

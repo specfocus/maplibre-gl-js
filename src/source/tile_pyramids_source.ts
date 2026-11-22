@@ -15,6 +15,17 @@ import type {Tile} from '../tile/tile.ts';
 import type {RasterSourceSpecification} from '@maplibre/maplibre-gl-style-spec';
 
 /**
+ * specfocus: where a pyramid reads its tiles from when they are another place's. A tile at zoom `z` or deeper is
+ * answered by the tile `dx`, `dy` tiles of zoom `z` away (scaled to its own zoom), and its coverage is that tile's:
+ * the same files serve both places. Above `z` the pyramid answers nothing.
+ */
+export type TilePyramidAlias = {
+    z: number;
+    dx: number;
+    dy: number;
+};
+
+/**
  * specfocus: one baked pyramid inside a `tile-pyramids` source.
  */
 export type TilePyramidSpecification = {
@@ -31,6 +42,8 @@ export type TilePyramidSpecification = {
      * stretched, instead of what lies below this pyramid. Default false.
      */
     overzoom?: boolean;
+    /** Reads another place's tiles of this pyramid. `scope` is then the place that borrows them. */
+    alias?: TilePyramidAlias;
 };
 
 /**
@@ -81,6 +94,15 @@ const inScope = (pyramid: Pyramid, tile: TileAddress): boolean => {
     return a.x === scope.x && a.y === scope.y;
 };
 
+/** The tile whose file answers `tile`: itself, or the one its alias names; null above the alias's zoom. */
+const sourceTile = (pyramid: Pyramid, tile: TileAddress): TileAddress | null => {
+    const alias = pyramid.alias;
+    if (alias === undefined) return tile;
+    if (tile.z < alias.z) return null;
+    const scale = 2 ** (tile.z - alias.z);
+    return {z: tile.z, x: tile.x + alias.dx * scale, y: tile.y + alias.dy * scale};
+};
+
 const fill = (templates: readonly string[], tile: TileAddress): string => {
     const template = templates[(tile.x + tile.y) % templates.length];
     return template.replace('{z}', String(tile.z)).replace('{x}', String(tile.x)).replace('{y}', String(tile.y));
@@ -100,14 +122,16 @@ export function resolveTilePyramids(pyramids: readonly Pyramid[], hasGround: boo
         const minzoom = pyramid.minzoom ?? 0;
         const maxzoom = pyramid.maxzoom ?? Infinity;
         if (tile.z < minzoom) continue;
+        const source = sourceTile(pyramid, tile);
+        if (source === null) continue;
         const coverage = pyramid.tileCoverage;
         if (tile.z > maxzoom) {
-            if (pyramid.overzoom && (coverage === undefined || coverageHas(coverage, ancestorAt(tile, maxzoom)))) return {kind: 'parent'};
+            if (pyramid.overzoom && (coverage === undefined || coverageHas(coverage, ancestorAt(source, maxzoom)))) return {kind: 'parent'};
             continue;
         }
-        if (coverage !== undefined && !coverageHas(coverage, tile)) continue;
-        const opaque = coverage === undefined ? undefined : coverageOpaque(coverage, tile);
-        return {kind: 'picture', url: fill(pyramid.tiles, tile), ground: hasGround && opaque !== true};
+        if (coverage !== undefined && !coverageHas(coverage, source)) continue;
+        const opaque = coverage === undefined ? undefined : coverageOpaque(coverage, source);
+        return {kind: 'picture', url: fill(pyramid.tiles, source), ground: hasGround && opaque !== true};
     }
     return hasGround ? {kind: 'ground'} : {kind: 'empty'};
 }
@@ -133,12 +157,17 @@ export class TilePyramidsSource extends RasterTileSource {
         const request = new AbortController();
         this._tileJSONRequest = request;
         // Every coverage before any tile: a pyramid whose coverage cannot be read is asked for every tile.
+        const documents = new Map<string, Promise<TileCoverage | undefined>>();
+        const read = async (url: string): Promise<TileCoverage | undefined> => {
+            const parameters = await this.map._requestManager.transformRequest(url, ResourceType.Source);
+            const {data} = await getJSON<unknown>(parameters, request);
+            return parseTileCoverage(data);
+        };
         await Promise.all(this.pyramids.map(async (pyramid: Pyramid): Promise<void> => {
             if (pyramid.coverage === undefined) return;
             try {
-                const parameters = await this.map._requestManager.transformRequest(pyramid.coverage, ResourceType.Source);
-                const {data} = await getJSON<unknown>(parameters, request);
-                pyramid.tileCoverage = parseTileCoverage(data);
+                if (!documents.has(pyramid.coverage)) documents.set(pyramid.coverage, read(pyramid.coverage));
+                pyramid.tileCoverage = await documents.get(pyramid.coverage);
             } catch (err) {
                 if (!isAbortError(err)) pyramid.tileCoverage = undefined;
             }

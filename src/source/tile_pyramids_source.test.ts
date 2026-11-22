@@ -35,6 +35,14 @@ describe('tile-pyramids resolution (Lucas, 2026-10-20)', () => {
         expect(resolveTilePyramids([{...mirage, overzoom: false}], true, {z: 7, x: 34, y: 58})).toEqual({kind: 'ground'});
     });
 
+    test('an alias answers its place with the tiles and coverage of the place it borrows from', () => {
+        const borrowed = {...mirage, scope: '5/20/20', minzoom: 5, alias: {z: 5, dx: -11, dy: -6}};
+        expect(resolveTilePyramids([borrowed], true, {z: 5, x: 20, y: 20})).toMatchObject({kind: 'picture', url: 'https://maps.umbiliko.com/tiles/cri/mirage/5/9/14.webp?v=1', ground: false});
+        expect(resolveTilePyramids([borrowed], true, {z: 6, x: 40, y: 40})).toMatchObject({kind: 'picture', url: 'https://maps.umbiliko.com/tiles/cri/mirage/6/18/28.webp?v=1'});
+        expect(resolveTilePyramids([borrowed], true, {z: 5, x: 9, y: 14})).toEqual({kind: 'ground'});
+        expect(resolveTilePyramids([{...borrowed, scope: '4/10/10', minzoom: 4}], true, {z: 4, x: 10, y: 10})).toEqual({kind: 'ground'});
+    });
+
     test('where no pyramid covers the tile, the ground answers; without a ground, nothing is drawn', () => {
         expect(resolveTilePyramids([mirage], true, {z: 5, x: 0, y: 0})).toEqual({kind: 'ground'});
         expect(resolveTilePyramids([mirage], true, {z: 7, x: 0, y: 0})).toEqual({kind: 'ground'});
